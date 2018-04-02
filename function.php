@@ -57,15 +57,15 @@ function run_command($command, $pwd) {
     
     if (!empty($params[1])) {
         foreach ($params[1] as $param) {
-            $command = str_replace("\"{$param}\"", escapeshellarg($param) . " 1", $command);
+            $command = str_replace("\"{$param}\"", escapeshellarg($param), $command);
         }
     }
-    $command = escapeshellcmd($command);
+//    $command = escapeshellcmd($command);
     
 //    echo '<pre>' . print_r($command, true) . '</pre>';
 //    exit();
-    $resource = proc_open('bash', $descriptorspec, $pipes, $pwd, null);
-//    $command = escapeshellarg($command);
+    $resource = proc_open("bash", $descriptorspec, $pipes, $pwd, null);
+
     fwrite($pipes[0], $command);
     fwrite($pipes[0], "\n");
     fwrite($pipes[0], 'pwd');
@@ -92,6 +92,8 @@ function run_command($command, $pwd) {
     unset($lines[$count - 2]);
 
     $res = implode(PHP_EOL, $lines);
-
+    echo '<pre>' . print_r($pwd, true) . '</pre>';
+    echo '<pre>' . print_r($res, true) . '</pre>';
+    exit();
     return array('pwd' => $pwd, 'res' => $res);
 }
