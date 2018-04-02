@@ -5,10 +5,14 @@
     <meta charset="utf-8"/>
     <title>GIT Terminal</title>
     <meta name="Description" content="This is demonstration of JQuery Terminal Emulator Plugin. To run terminal type tilda on you keyboard."/>
-    <script src="../resource/jquery/jquery-1.7.1.min.js"></script>
-    <script src="../resource/mousewheel/jquery.plugin-mousewheel.min.js"></script>
-    <script src="../resource/terminal/js/jquery.terminal.js"></script>
-    <link href="../resource/terminal/css/jquery.terminal.css" rel="stylesheet"/>
+    <script src="/resource/jquery/jquery-1.9.1.min.js"></script>
+    <script src="/resource/mousewheel/jquery.plugin-mousewheel.min.js"></script>
+    <script src="/resource/terminal/js/jquery.terminal.js"></script>
+    <link href="/resource/terminal/css/jquery.terminal.css" rel="stylesheet"/>
+    <link href="/resource/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/resource/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/resource/jsCookie/js.cookie.js"></script>
+<!--    <script src="/resource/md5/md5.script.js"></script>-->
     <!--[if IE]>
     <style>
         body {
@@ -29,107 +33,73 @@
             });
         });
     </script><![endif]-->
-    <script>
 
-        String.prototype.strip = function (char) {
-            return this.replace(new RegExp("^" + char + "*"), '').replace(new RegExp(char + "*$"), '');
-        }
-
-
-        $.extend_if_has = function (desc, source, array) {
-            for (var i = array.length; i--;) {
-                if (typeof source[array[i]] !== 'undefined') {
-                    desc[array[i]] = source[array[i]];
-                }
-            }
-            return desc;
-        };
-
-        (function ($) {
-            $.fn.tilda = function (eval, options) {
-                if ($('body').data('tilda')) {
-                    return $('body').data('tilda').terminal;
-                }
-                this.addClass('tilda');
-                options = options || {};
-                eval = eval || function (command, term) {
-                    term.echo("you don't set eval for tilda");
-                };
-                var settings = {
-                    prompt: '$> ',
-                    name: 'tilda',
-                    height: 500,
-                    enabled: true,
-                    greetings: 'SERVER TERMINAL',
-                    keypress: function (e) {
-                        if (e.which === 96) {
-                            return false;
-                        }
-                    }
-                };
-                if (options) {
-                    $.extend(settings, options);
-                }
-                this.append('<div class="td"></div>');
-                var self = this;
-                self.terminal = this.find('.td').terminal(eval, settings);
-                var focus = false;
-                $(document.documentElement).keypress(function (e) {
-                    if (e.which === 96) {
-                        self.slideToggle('fast');
-                        self.terminal.focus(focus = !focus);
-                        self.terminal.attr({
-                            scrollTop: self.terminal.attr("scrollHeight")
-                        });
-                    }
-                });
-                $('body').data('tilda', this);
-                this.hide();
-                return self;
-            };
-        })(jQuery);
-
-        //--------------------------------------------------------------------------
-        jQuery(document).ready(function ($) {
-            $('#tilda').tilda(function (command, terminal) {
-                if (command !== '') {
-                    $.ajax({
-                        type: "POST",
-                        url: "/test.php",
-                        async: false,
-                        data: {
-                            cmd: command,
-                            pwd: terminal.get_prompt()
-                        },
-                        dataType: 'json'
-                    }).done(function (response) {
-                        if (response.status === 'success') {
-                            terminal.echo(response['result']);
-                            terminal.set_prompt(response['pwd']);
-                        } else {
-                            terminal.error(response.result);
-                        }
-                    });
-                    // try {
-                    //     var result = window.eval(command);
-                    //     if (result !== undefined) {
-                    //         this.echo(new String(result));
-                    //     }
-                    // } catch(e) {
-                    //     this.error(new String(e));
-                    // }
-                }
-                // else {
-                //    this.echo('you type command "' + command + '"');
-                // }
-                // terminal.echo('you type command "' + command + '"');
-            });
-        });
-
-    </script>
 </head>
 <body>
 <div id="tilda"></div>
-<h1>Type ~/`</h1>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Authorisation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label for="login" class="col-sm-2 col-form-label">Login</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="login" value="" name="login">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary confirm-login">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="alert alert-primary text-center" role="alert" style="font-size: 26px; margin-bottom: 0px">
+    Commands
+</div>
+<div id="command-teminal-execute"></div>
+<script>
+    $(document).ready(function () {
+        var formModal = $("#exampleModal");
+        if (!Cookies.get('is_login')) {
+            formModal.modal({backdrop: false, keyboard: false});//backdrop: false, keyboard: false,
+        }
+
+        $(".confirm-login").on("click", function (event) {
+            event.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "/login.php",
+                data: {login : $("#login").val()},
+                cache: false,
+                dataType: "JSON",
+                success: function (output) {
+                    if (output.status == "success") {
+                        $("#exampleModal").modal('hide');
+                        $("#exampleModal").after().html(output.connect);
+                    } else {
+                        alert(output.message);
+                    }
+                },
+                error: function () {
+                    alert("Internal server error");
+                }
+            });
+        });
+    });
+</script>
+<?php if ($_COOKIE['is_login']) { ?>
+<script src="/resource/terminal/functional.js"></script>
+<?php } ?>
 </body>
 </html>
