@@ -8,7 +8,7 @@ if (!empty($_POST['cmd'])) {
         $pwd = $_POST['pwd'];
 
         $rules_command = [
-            ';', '&', '&&', '|', '<', '>', '>>'
+            ';', '&', '&&', '|', '>>'//'<', '>',
         ];
 
         $allowed_commands = [

@@ -60,10 +60,7 @@ function run_command($command, $pwd) {
             $command = str_replace("\"{$param}\"", escapeshellarg($param), $command);
         }
     }
-//    $command = escapeshellcmd($command);
-    
-//    echo '<pre>' . print_r($command, true) . '</pre>';
-//    exit();
+
     $resource = proc_open("bash", $descriptorspec, $pipes, $pwd, null);
 
     fwrite($pipes[0], $command);
@@ -81,7 +78,6 @@ function run_command($command, $pwd) {
     $status = trim(proc_close($resource));
     if ($status) throw new Exception($stderr . "\n" . $stdout); //Not all errors are printed to stderr, so include std out as well.
 
-
     $lines = explode("\n", $stdout);
 
     $count = count($lines);
@@ -92,8 +88,5 @@ function run_command($command, $pwd) {
     unset($lines[$count - 2]);
 
     $res = implode(PHP_EOL, $lines);
-    echo '<pre>' . print_r($pwd, true) . '</pre>';
-    echo '<pre>' . print_r($res, true) . '</pre>';
-    exit();
     return array('pwd' => $pwd, 'res' => $res);
 }
